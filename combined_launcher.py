@@ -2109,25 +2109,18 @@ def test_network_connectivity():
         messagebox.showerror("Network Test Error", f"Failed to run network diagnostics: {str(e)}")
 
 def check_launcher_updates():
-    """Check for launcher updates from GitHub."""
+    """Open the GitHub Pages site for launcher updates."""
     try:
-        # This would typically check a GitHub repository for updates
-        # For now, we'll simulate this functionality
-        current_version = LAUNCHER_VERSION
+        # Open the GitHub Pages site
+        github_pages_url = "https://itsnikoplayzyt.github.io/minecraft-launcher/"
+        webbrowser.open(github_pages_url)
+        append_terminal("Opening GitHub Pages for updates...")
 
-        # Simulate checking for updates
-        append_terminal("Checking for launcher updates...")
-
-        # In a real implementation, you would:
-        # 1. Fetch latest release from GitHub API
-        # 2. Compare versions
-        # 3. Download and install if newer version available
-
-        messagebox.showinfo("Update Check", f"Current version: {current_version}\n\nUpdate checking is not implemented yet.\n\nTo check for updates manually, visit the project's GitHub repository.")
+        messagebox.showinfo("Update Check", f"Current version: {LAUNCHER_VERSION}\n\nOpening GitHub Pages to check for updates...\n\n{github_pages_url}")
 
     except Exception as e:
-        append_terminal(f"Update check failed: {str(e)}")
-        messagebox.showerror("Update Check Error", f"Failed to check for updates: {str(e)}")
+        append_terminal(f"Failed to open GitHub Pages: {str(e)}")
+        messagebox.showerror("Update Check Error", f"Failed to open GitHub Pages: {str(e)}")
 
 RoundedButton(network_frame, text="Test Connectivity", command=test_network_connectivity).pack(side="left", padx=(5, 0))
 RoundedButton(network_frame, text="Check Updates", command=check_launcher_updates).pack(side="left", padx=(5, 0))
