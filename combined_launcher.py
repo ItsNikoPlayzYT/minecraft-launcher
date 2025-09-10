@@ -143,6 +143,43 @@ def get_cached_command(version, options_key):
     cache_key = f"{version}_{options_key}"
     return command_cache.get(cache_key)
 
+# === Version List Caching ===
+version_cache = {}
+VERSION_CACHE_DURATION = 3600  # Cache for 1 hour (3600 seconds)
+
+def get_cached_versions():
+    """Get cached version list or fetch new one if cache is expired"""
+    global version_cache
+    current_time = time.time()
+
+    # Check if cache exists and is not expired
+    if 'versions' in version_cache and 'timestamp' in version_cache:
+        if current_time - version_cache['timestamp'] < VERSION_CACHE_DURATION:
+            return version_cache['versions']
+
+    # Cache expired or doesn't exist, fetch new versions
+    try:
+        versions = [v["id"] for v in minecraft_launcher_lib.utils.get_available_versions(MINECRAFT_DIR)]
+        version_cache = {
+            'versions': versions,
+            'timestamp': current_time
+        }
+        return versions
+    except Exception as e:
+        append_terminal(f"Failed to fetch versions: {e}")
+        # Return fallback versions
+        fallback_versions = ["1.20.1", "1.19.4", "1.19.3", "1.18.2", "1.17.1", "1.16.5"]
+        version_cache = {
+            'versions': fallback_versions,
+            'timestamp': current_time
+        }
+        return fallback_versions
+
+def clear_version_cache():
+    """Clear the version cache"""
+    global version_cache
+    version_cache.clear()
+
 # === Terminal ===
 terminal_output = None  # Will be initialized later
 
