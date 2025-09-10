@@ -1,35 +1,36 @@
-# Optimization Tasks for combined_launcher.py
+# OmniLauncher Critical Fixes - Phase 1
 
-## Step 1: Version Checking and Installation
-- [ ] Refactor version list fetching to use cached versions consistently in UI and logic
-- [ ] Add version validation before installation to prevent invalid version installs
-- [ ] Improve installation progress reporting with smoother UI updates
-- [ ] Investigate incremental installation or parallel downloads support in minecraft_launcher_lib
+## Memory Leak Fixes
+- [x] Fix image resource management in skin preview functions
+- [ ] Implement proper PhotoImage reference cleanup
+- [ ] Add image cache with size limits to prevent accumulation
 
-## Step 2: Image Caching and Memory Management
-- [ ] Review image_cache usage and LRU eviction logic
-- [ ] Optimize cache size and memory usage for images
+## Thread Safety Improvements
+- [ ] Replace direct UI updates in threads with root.after() calls
+- [ ] Create thread-safe wrapper functions for UI operations
+- [ ] Fix progress bar updates from background threads
+- [ ] Fix terminal output updates from threads
 
-## Step 3: Reduce Unnecessary API Calls
-- [ ] Minimize repeated network calls by caching results effectively
-- [ ] Optimize Microsoft login token validation and refresh logic for efficiency
+## Error Handling Enhancements
+- [ ] Replace bare except: with specific exception handling
+- [ ] Add comprehensive error logging with context
+- [ ] Implement graceful error recovery where possible
+- [ ] Add user-friendly error messages
 
-## Step 4: UI Rendering and Scrolling Performance
-- [ ] Optimize scroll event handling and UI update calls to improve responsiveness
+## Input Validation Improvements
+- [ ] Add comprehensive username validation
+- [ ] Add URL validation for mod downloads
+- [ ] Add file path validation for mod installations
+- [ ] Add server IP/port validation
+- [ ] Sanitize all user inputs
 
-## Step 5: Code Refactoring and Modularization
-- [ ] Split combined_launcher.py into multiple modules:
-  - mods.py
-  - servers.py
-  - updater.py
-  - backup.py
-  - jvm_presets.py
-- [ ] Refactor imports and UI code to use these modules
+## Resource Cleanup
+- [ ] Ensure all file handles are properly closed
+- [ ] Add proper cleanup for network connections
+- [ ] Implement cleanup for temporary files
+- [ ] Add context managers where appropriate
 
-## Step 6: Threading and Performance
-- [ ] Review threading usage for launching, downloading, login, etc.
-- [ ] Ensure all UI updates are thread-safe and consistent
-
-## Follow-up Steps
-- [ ] Test each optimization incrementally
-- [ ] Update documentation and changelog accordingly
+## Code Organization Preparation
+- [ ] Identify functions to extract into separate modules
+- [ ] Plan module structure for Phase 2
+- [ ] Add proper imports and dependencies management

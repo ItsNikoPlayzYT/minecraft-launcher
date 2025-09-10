@@ -180,6 +180,45 @@ def clear_version_cache():
     global version_cache
     version_cache.clear()
 
+def check_for_minecraft_updates():
+    """Check for the latest Minecraft version and compare with current selection"""
+    def do_check():
+        try:
+            append_terminal("Checking for Minecraft updates...")
+
+            # Fetch latest version from Mojang API
+            response = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json", timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            latest_release = data["latest"]["release"]
+
+            current_version = version_var.get()
+
+            append_terminal(f"Latest Minecraft version: {latest_release}")
+            append_terminal(f"Current selected version: {current_version}")
+
+            # Compare versions (simple string comparison for now)
+            if latest_release != current_version:
+                if messagebox.askyesno("Minecraft Update Available",
+                                      f"A new Minecraft version is available!\n\n"
+                                      f"Latest: {latest_release}\n"
+                                      f"Current: {current_version}\n\n"
+                                      "Would you like to select the latest version?"):
+                    version_var.set(latest_release)
+                    append_terminal(f"Selected Minecraft version: {latest_release}")
+                    messagebox.showinfo("Version Updated", f"Minecraft version updated to {latest_release}")
+                else:
+                    messagebox.showinfo("Update Available", f"Minecraft {latest_release} is available. You can select it from the version dropdown.")
+            else:
+                messagebox.showinfo("Up to Date", f"You are already using the latest Minecraft version ({latest_release})")
+
+        except Exception as e:
+            append_terminal(f"Failed to check for Minecraft updates: {e}")
+            messagebox.showerror("Update Check Failed", f"Failed to check for updates: {str(e)}")
+
+    threading.Thread(target=do_check, daemon=True).start()
+
 # === Terminal ===
 terminal_output = None  # Will be initialized later
 
@@ -1215,9 +1254,10 @@ current_theme = THEMES.get(current_theme_name, THEMES["dark"])
 
 root = tk.Tk()
 root.title(f"{LAUNCHER_NAME} v{LAUNCHER_VERSION}")
-root.geometry("700x650")
+root.geometry("1000x700")
 root.configure(bg=current_theme["bg"])
 root.resizable(True, True)
+root.minsize(800, 600)
 
 if os.path.exists(ICON):
     root.iconbitmap(ICON)
@@ -1348,19 +1388,193 @@ def open_minecraft_folder():
 
 RoundedButton(launcher_scrollable_frame, text=translate("clear_cache"), command=clear_cache).pack(pady=5)
 RoundedButton(launcher_scrollable_frame, text=translate("open_minecraft_folder"), command=open_minecraft_folder).pack(pady=5)
+RoundedButton(launcher_scrollable_frame, text="Check for Minecraft Updates", command=check_for_minecraft_updates).pack(pady=5)
 
-# === Version Selector ===
-tk.Label(tab_launcher, text="Minecraft Version:", bg=current_theme["bg"], fg=current_theme["fg"], font=current_theme["font_bold"]).pack(anchor="w", padx=20, pady=(15, 5))
+# === Enhanced Version Selector ===
+tk.Label(launcher_scrollable_frame, text="Minecraft Version:", bg=current_theme["bg"], fg=current_theme["fg"], font=current_theme["font_bold"]).pack(anchor="w", padx=20, pady=(15, 5))
+
+# Version selector frame
+version_frame = tk.Frame(launcher_scrollable_frame, bg=current_theme["bg"])
+version_frame.pack(fill="x", padx=20, pady=(0, 10))
+
+# Initialize favorites in config if not exists
+if "favorite_versions" not in config_data:
+    config_data["favorite_versions"] = []
 
 def get_versions():
+    """Get available Minecraft versions with caching"""
     try:
-        return [v["id"] for v in minecraft_launcher_lib.utils.get_available_versions(MINECRAFT_DIR)]
-    except:
-        return ["1.20.1", "1.19.4"]
+        versions_data = minecraft_launcher_lib.utils.get_available_versions(MINECRAFT_DIR)
+        return [v["id"] for v in versions_data]
+    except Exception as e:
+        append_terminal(f"Failed to fetch versions: {e}")
+        return ["1.20.1", "1.19.4", "1.18.2"]
 
+def refresh_versions():
+    """Refresh the version list"""
+    def do_refresh():
+        try:
+            append_terminal("Refreshing Minecraft version list...")
+            # Clear version cache if it exists
+            if 'version_cache' in globals():
+                global version_cache
+                version_cache.clear()
+
+            # Get fresh versions
+            new_versions = get_versions()
+
+            # Update regular versions combobox
+            regular_combo['values'] = new_versions
+            if new_versions and version_var.get() not in new_versions:
+                version_var.set(new_versions[0])
+
+            # Update favorites combobox (keep only valid favorites)
+            current_favorites = config_data.get("favorite_versions", [])
+            valid_favorites = [v for v in current_favorites if v in new_versions]
+            if len(valid_favorites) != len(current_favorites):
+                config_data["favorite_versions"] = valid_favorites
+                save_config()
+
+            favorite_combo['values'] = valid_favorites
+            if valid_favorites and favorite_var.get() not in valid_favorites:
+                favorite_var.set(valid_favorites[0]) if valid_favorites else favorite_var.set("")
+
+            append_terminal(f"Version list refreshed. Found {len(new_versions)} versions.")
+            refresh_button.config(text="Refresh", state="normal")
+
+        except Exception as e:
+            append_terminal(f"Failed to refresh versions: {e}")
+            refresh_button.config(text="Refresh", state="normal")
+
+    refresh_button.config(text="Refreshing...", state="disabled")
+    threading.Thread(target=do_refresh, daemon=True).start()
+
+def add_to_favorites():
+    """Add current version to favorites"""
+    current_version = version_var.get()
+    if not current_version:
+        messagebox.showwarning("Warning", "No version selected.")
+        return
+
+    favorites = config_data.get("favorite_versions", [])
+    if current_version not in favorites:
+        favorites.append(current_version)
+        config_data["favorite_versions"] = favorites
+        save_config()
+
+        # Update favorites combobox
+        favorite_combo['values'] = favorites
+        favorite_var.set(current_version)
+
+        append_terminal(f"Added {current_version} to favorites.")
+        messagebox.showinfo("Success", f"{current_version} added to favorites!")
+    else:
+        messagebox.showinfo("Info", f"{current_version} is already in favorites.")
+
+def remove_from_favorites():
+    """Remove selected favorite version"""
+    current_favorite = favorite_var.get()
+    if not current_favorite:
+        messagebox.showwarning("Warning", "No favorite version selected.")
+        return
+
+    favorites = config_data.get("favorite_versions", [])
+    if current_favorite in favorites:
+        favorites.remove(current_favorite)
+        config_data["favorite_versions"] = favorites
+        save_config()
+
+        # Update favorites combobox
+        favorite_combo['values'] = favorites
+        if favorites:
+            favorite_var.set(favorites[0])
+        else:
+            favorite_var.set("")
+
+        append_terminal(f"Removed {current_favorite} from favorites.")
+        messagebox.showinfo("Success", f"{current_favorite} removed from favorites!")
+    else:
+        messagebox.showwarning("Warning", "Version not found in favorites.")
+
+# Get initial versions
 versions = get_versions()
-version_var.set(versions[0])
-ttk.Combobox(tab_launcher, textvariable=version_var, values=versions, state="readonly").pack(fill="x", padx=20)
+favorites = config_data.get("favorite_versions", [])
+
+# Variables for version selection
+favorite_var = tk.StringVar()
+
+# Favorites section
+favorites_frame = tk.Frame(version_frame, bg=current_theme["bg"])
+favorites_frame.pack(fill="x", pady=(0, 5))
+
+tk.Label(favorites_frame, text="Favorites:", bg=current_theme["bg"], fg=current_theme["fg"]).pack(side="left")
+favorite_combo = ttk.Combobox(favorites_frame, textvariable=favorite_var, values=favorites, state="readonly", width=20)
+favorite_combo.pack(side="left", padx=(5, 0))
+
+# Connect favorite selection to main version variable
+def on_favorite_select(*args):
+    selected = favorite_var.get()
+    if selected:
+        version_var.set(selected)
+
+favorite_var.trace_add("write", on_favorite_select)
+
+# Regular versions section
+regular_frame = tk.Frame(version_frame, bg=current_theme["bg"])
+regular_frame.pack(fill="x", pady=(0, 5))
+
+tk.Label(regular_frame, text="All Versions:", bg=current_theme["bg"], fg=current_theme["fg"]).pack(side="left")
+regular_combo = ttk.Combobox(regular_frame, textvariable=version_var, values=versions, state="readonly", width=20)
+regular_combo.pack(side="left", padx=(5, 0))
+
+# Set initial version
+if versions:
+    version_var.set(versions[0])
+
+# Buttons frame
+buttons_frame = tk.Frame(version_frame, bg=current_theme["bg"])
+buttons_frame.pack(fill="x", pady=(5, 0))
+
+# Add/Remove favorites buttons
+RoundedButton(buttons_frame, text="Add to Favorites", command=add_to_favorites,
+              bg=current_theme["button_bg"], fg=current_theme["button_fg"]).pack(side="left", padx=(0, 5))
+RoundedButton(buttons_frame, text="Remove Favorite", command=remove_from_favorites,
+              bg=current_theme["button_bg"], fg=current_theme["button_fg"]).pack(side="left", padx=(0, 5))
+
+# Refresh button
+refresh_button = RoundedButton(buttons_frame, text="Refresh Versions", command=refresh_versions,
+                               bg=current_theme["button_bg"], fg=current_theme["button_fg"])
+refresh_button.pack(side="left", padx=(0, 5))
+
+# Version info button
+def show_version_info():
+    """Show information about the selected version"""
+    selected_version = version_var.get()
+    if not selected_version:
+        messagebox.showwarning("Warning", "No version selected.")
+        return
+
+    try:
+        versions_data = minecraft_launcher_lib.utils.get_available_versions(MINECRAFT_DIR)
+        version_info = None
+        for v in versions_data:
+            if v["id"] == selected_version:
+                version_info = v
+                break
+
+        if version_info:
+            info_text = f"""Version: {version_info['id']}
+Type: {version_info.get('type', 'Unknown')}
+Release Time: {version_info.get('releaseTime', 'Unknown')}
+URL: {version_info.get('url', 'N/A')}"""
+            messagebox.showinfo("Version Information", info_text)
+        else:
+            messagebox.showinfo("Version Information", f"Version: {selected_version}\n(No additional information available)")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to get version info: {str(e)}")
+
+RoundedButton(buttons_frame, text="Version Info", command=show_version_info,
+              bg=current_theme["button_bg"], fg=current_theme["button_fg"]).pack(side="left")
 
 # === Progress Bar ===
 tk.Label(tab_launcher, text="Installation Progress:", bg=current_theme["bg"], fg=current_theme["fg"], font=current_theme["font_bold"]).pack(anchor="w", padx=20, pady=(15, 5))
@@ -1864,7 +2078,7 @@ def remove_version():
             confirm = messagebox.askyesno("Confirm Removal", f"Are you sure you want to remove Minecraft version '{version_to_remove}'?\n\nThis action cannot be undone.")
             if confirm:
                 try:
-                    minecraft_launcher_lib.utils.delete_version(version_to_remove, MINECRAFT_DIR)
+                    minecraft_launcher_lib.utils.delete_version_data(version_to_remove, MINECRAFT_DIR)
                     append_terminal(f"Version '{version_to_remove}' removed successfully.")
                     messagebox.showinfo("Success", f"Minecraft version '{version_to_remove}' has been removed.")
                 except Exception as e:
@@ -2109,18 +2323,111 @@ def test_network_connectivity():
         messagebox.showerror("Network Test Error", f"Failed to run network diagnostics: {str(e)}")
 
 def check_launcher_updates():
-    """Open the GitHub Pages site for launcher updates."""
+    """Check for launcher updates from GitHub releases and auto-update."""
     try:
-        # Open the GitHub Pages site
-        github_pages_url = "https://itsnikoplayzyt.github.io/minecraft-launcher/"
-        webbrowser.open(github_pages_url)
-        append_terminal("Opening GitHub Pages for updates...")
+        import packaging.version
 
-        messagebox.showinfo("Update Check", f"Current version: {LAUNCHER_VERSION}\n\nOpening GitHub Pages to check for updates...\n\n{github_pages_url}")
+        github_repo = "itsnikoplayzyt/minecraft-launcher"
+        api_url = f"https://api.github.com/repos/{github_repo}/releases/latest"
+
+        append_terminal("Checking for launcher updates...")
+
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+
+        release_data = response.json()
+        latest_version = release_data["tag_name"].lstrip('v')
+        download_url = None
+
+        # Find the appropriate asset (assuming it's a zip file)
+        for asset in release_data.get("assets", []):
+            if asset["name"].endswith(".zip"):
+                download_url = asset["browser_download_url"]
+                break
+
+        if not download_url:
+            # Fallback to source code zip
+            download_url = release_data["zipball_url"]
+
+        current_version = LAUNCHER_VERSION
+
+        # Compare versions
+        if packaging.version.parse(latest_version) > packaging.version.parse(current_version):
+            append_terminal(f"Update available: {latest_version} (current: {current_version})")
+
+            if messagebox.askyesno("Update Available",
+                                  f"A new version {latest_version} is available.\n\n"
+                                  f"Current version: {current_version}\n\n"
+                                  "Would you like to download and install the update now?"):
+                # Download and install update
+                try:
+                    # Download the update
+                    append_terminal("Downloading update...")
+                    response = requests.get(download_url, timeout=60)
+                    response.raise_for_status()
+
+                    # Save to temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as temp_file:
+                        temp_file.write(response.content)
+                        temp_path = temp_file.name
+
+                    append_terminal("Extracting update...")
+
+                    # Extract to temporary directory
+                    extract_dir = tempfile.mkdtemp()
+                    with zipfile.ZipFile(temp_path, 'r') as zip_ref:
+                        zip_ref.extractall(extract_dir)
+
+                    # Find the main directory (GitHub releases might have extra folder)
+                    contents = os.listdir(extract_dir)
+                    if len(contents) == 1 and os.path.isdir(os.path.join(extract_dir, contents[0])):
+                        source_dir = os.path.join(extract_dir, contents[0])
+                    else:
+                        source_dir = extract_dir
+
+                    # Get current launcher directory
+                    current_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+                    # Backup current version
+                    backup_dir = os.path.join(current_dir, "backup")
+                    if os.path.exists(backup_dir):
+                        shutil.rmtree(backup_dir)
+                    shutil.copytree(current_dir, backup_dir, ignore=shutil.ignore_patterns("backup", "__pycache__", "*.pyc"))
+
+                    append_terminal("Installing update...")
+
+                    # Copy new files (excluding certain files)
+                    exclude_files = {"config.json", "logs", "screenshots", ".git"}
+                    for item in os.listdir(source_dir):
+                        if item in exclude_files:
+                            continue
+
+                        source_path = os.path.join(source_dir, item)
+                        dest_path = os.path.join(current_dir, item)
+
+                        if os.path.isdir(source_path):
+                            if os.path.exists(dest_path):
+                                shutil.rmtree(dest_path)
+                            shutil.copytree(source_path, dest_path)
+                        else:
+                            shutil.copy2(source_path, dest_path)
+
+                    # Clean up
+                    os.unlink(temp_path)
+                    shutil.rmtree(extract_dir)
+
+                    append_terminal("Update installed successfully!")
+                    messagebox.showinfo("Update Installed", "Update installed successfully! Please restart the launcher.")
+                except Exception as e:
+                    append_terminal(f"Failed to install update: {e}")
+                    messagebox.showerror("Update Error", f"Failed to install update: {e}")
+        else:
+            append_terminal("No updates available.")
+            messagebox.showinfo("Up to Date", "You are running the latest version.")
 
     except Exception as e:
-        append_terminal(f"Failed to open GitHub Pages: {str(e)}")
-        messagebox.showerror("Update Check Error", f"Failed to open GitHub Pages: {str(e)}")
+        append_terminal(f"Failed to check for updates: {e}")
+        messagebox.showerror("Update Check Error", f"Failed to check for updates: {str(e)}")
 
 RoundedButton(network_frame, text="Test Connectivity", command=test_network_connectivity).pack(side="left", padx=(5, 0))
 RoundedButton(network_frame, text="Check Updates", command=check_launcher_updates).pack(side="left", padx=(5, 0))
