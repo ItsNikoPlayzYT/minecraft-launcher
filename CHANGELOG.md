@@ -38,6 +38,7 @@
 - **Build Process**: Streamlined deployment with automated testing
 
 ### Fixed
+- **No version Detected**: Fixed error allowing to launch minecraft
 - **Memory Leaks**: Eliminated all image resource leaks in preview systems
 - **Thread Conflicts**: Resolved all UI update issues in background threads
 - **Input Validation**: Fixed edge cases in username and URL validation

@@ -1410,7 +1410,9 @@ def launch():
             append_terminal(f"Preparing to launch Minecraft {version}...")
 
             # Check if version is already installed
-            if not minecraft_launcher_lib.install.is_version_installed(version, MINECRAFT_DIR):
+            installed_versions = minecraft_launcher_lib.utils.get_installed_versions(MINECRAFT_DIR)
+            installed_version_ids = [v['id'] for v in installed_versions]
+            if version not in installed_version_ids:
                 append_terminal("Version not installed. Starting download...")
                 progress_var.set(0)  # Reset progress bar
 
