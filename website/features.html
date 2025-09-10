@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OmniLauncher Features</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2f;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #4a90e2;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .feature {
+            background-color: #2d2d44;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .feature h3 {
+            color: #3399ff;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .feature p {
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #4a90e2;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background-color: #1a1a2e;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a> |
+        <a href="about.html">About</a> |
+        <a href="features.html">Features</a>
+    </nav>
+
+    <header>
+        <h1>OmniLauncher Features</h1>
+        <p>Discover the powerful features that make OmniLauncher the ultimate Minecraft launcher</p>
+    </header>
+
+    <div class="feature-grid">
+        <div class="feature">
+            <span class="feature-icon">🎮</span>
+            <h3>Advanced Mod Management</h3>
+            <p>Comprehensive mod management system with dependency tracking, conflict detection, and automatic loader detection (Forge, Fabric, NeoForge).</p>
+            <div class="highlight">
+                <strong>Key Features:</strong>
+                <ul>
+                    <li>Automatic mod scanning</li>
+                    <li>Dependency resolution</li>
+                    <li>Conflict detection</li>
+                    <li>URL download support</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">🌐</span>
+            <h3>Server Management</h3>
+            <p>Complete server management with favorites, ping testing, and quick connect functionality for seamless multiplayer experience.</p>
+            <div class="highlight">
+                <strong>Key Features:</strong>
+                <ul>
+                    <li>Server favorites</li>
+                    <li>Ping testing</li>
+                    <li>Quick connect</li>
+                    <li>Server organization</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">⚙️</span>
+            <h3>JVM Optimization</h3>
+            <p>Pre-configured JVM presets for different performance needs, from low-memory systems to high-performance gaming rigs.</p>
+            <div class="highlight">
+                <strong>Presets:</strong>
+                <ul>
+                    <li>Performance optimized</li>
+                    <li>Low memory usage</li>
+                    <li>High performance</li>
+                    <li>Debug mode</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">🎨</span>
+            <h3>Theme System</h3>
+            <p>Multiple UI themes with custom color schemes and the ability to create your own personalized themes.</p>
+            <div class="highlight">
+                <strong>Themes:</strong>
+                <ul>
+                    <li>Dark theme</li>
+                    <li>Light theme</li>
+                    <li>Blue theme</li>
+                    <li>Green theme</li>
+                    <li>Custom themes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">🔒</span>
+            <h3>Security & Safety</h3>
+            <p>Advanced security measures including input validation, secure file operations, and comprehensive error handling.</p>
+            <div class="highlight">
+                <strong>Security Features:</strong>
+                <ul>
+                    <li>Input sanitization</li>
+                    <li>Secure file operations</li>
+                    <li>HTTPS enforcement</li>
+                    <li>Token encryption</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">📊</span>
+            <h3>Performance Monitoring</h3>
+            <p>Built-in performance monitoring tools to track system resources, launcher performance, and optimization suggestions.</p>
+            <div class="highlight">
+                <strong>Monitoring:</strong>
+                <ul>
+                    <li>Real-time stats</li>
+                    <li>System information</li>
+                    <li>Disk usage analysis</li>
+                    <li>Performance profiling</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">💾</span>
+            <h3>Backup & Restore</h3>
+            <p>Comprehensive backup system for mods, screenshots, configurations, and settings with easy restore functionality.</p>
+            <div class="highlight">
+                <strong>Backup Features:</strong>
+                <ul>
+                    <li>Mod backups</li>
+                    <li>Configuration backup</li>
+                    <li>Screenshot backup</li>
+                    <li>One-click restore</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">🔄</span>
+            <h3>Auto Updates</h3>
+            <p>Automatic update checking and installation for both the launcher and Minecraft versions with background updates.</p>
+            <div class="highlight">
+                <strong>Update Features:</strong>
+                <ul>
+                    <li>Launcher updates</li>
+                    <li>Minecraft updates</li>
+                    <li>Background updates</li>
+                    <li>Version management</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">🌍</span>
+            <h3>Internationalization</h3>
+            <p>Multi-language support with easy translation system for global accessibility.</p>
+            <div class="highlight">
+                <strong>Language Support:</strong>
+                <ul>
+                    <li>Multiple languages</li>
+                    <li>Easy translation</li>
+                    <li>Community contributions</li>
+                    <li>RTL support</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature">
+            <span class="feature-icon">📱</span>
+            <h3>Cross Platform</h3>
+            <p>Full cross-platform compatibility with optimized performance across Windows, macOS, and Linux.</p>
+            <div class="highlight">
+                <strong>Platforms:</strong>
+                <ul>
+                    <li>Windows</li>
+                    <li>macOS</li>
+                    <li>Linux</li>
+                    <li>Path compatibility</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
