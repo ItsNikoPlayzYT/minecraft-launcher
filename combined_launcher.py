@@ -1417,8 +1417,8 @@ def launch():
                 progress_var.set(0)  # Reset progress bar
 
                 # Create progress callback
-                def progress_callback(current, total):
-                    if total > 0:
+                def progress_callback(current, total=None):
+                    if total and total > 0:
                         progress = int((current / total) * 100)
                         progress_var.set(progress)  # Update progress bar
                         append_terminal(f"Download progress: {progress}% ({current}/{total} bytes)")
