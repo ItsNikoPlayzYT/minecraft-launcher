@@ -1,0 +1,50 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build executable
+      run: |
+        pyinstaller --clean OmniLauncher.spec
+
+    - name: Create installer
+      run: |
+        # Download and install NSIS
+        curl -L -o nsis.zip https://sourceforge.net/projects/nsis/files/NSIS%203/3.08/nsis-3.08.zip/download
+        7z x nsis.zip
+        # Add NSIS to PATH
+        echo "C:\nsis-3.08" >> $GITHUB_PATH
+
+        # Create installer
+        makensis installer/omnilancher_installer.nsi
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/OmniLauncher.exe
+          installer/OmniLauncher_Installer.exe
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -104,21 +104,44 @@ def thread_safe_ui_update(func):
 
 # === Image Resource Management ===
 image_cache = {}
-MAX_IMAGE_CACHE_SIZE = 10
+MAX_IMAGE_CACHE_SIZE = 20  # Increased cache size for better performance
 
 def cache_image(key, image):
-    """Cache an image with size limit"""
+    """Cache an image with size limit and LRU eviction"""
     global image_cache
     if len(image_cache) >= MAX_IMAGE_CACHE_SIZE:
-        # Remove oldest entry
+        # Remove oldest entry (LRU)
         oldest_key = next(iter(image_cache))
         del image_cache[oldest_key]
     image_cache[key] = image
+
+def get_cached_image(key):
+    """Get image from cache if exists"""
+    return image_cache.get(key)
 
 def clear_image_cache():
     """Clear the image cache"""
     global image_cache
     image_cache.clear()
+
+# === Command Caching ===
+command_cache = {}
+MAX_COMMAND_CACHE_SIZE = 50
+
+def cache_command(version, options_key, command):
+    """Cache generated Minecraft commands"""
+    global command_cache
+    cache_key = f"{version}_{options_key}"
+    if len(command_cache) >= MAX_COMMAND_CACHE_SIZE:
+        # Remove oldest entry
+        oldest_key = next(iter(command_cache))
+        del command_cache[oldest_key]
+    command_cache[cache_key] = command
+
+def get_cached_command(version, options_key):
+    """Get cached command if available"""
+    cache_key = f"{version}_{options_key}"
+    return command_cache.get(cache_key)
 
 # === Terminal ===
 terminal_output = None  # Will be initialized later
@@ -1410,9 +1433,7 @@ def launch():
             append_terminal(f"Preparing to launch Minecraft {version}...")
 
             # Check if version is already installed
-            installed_versions = minecraft_launcher_lib.utils.get_installed_versions(MINECRAFT_DIR)
-            installed_version_ids = [v['id'] for v in installed_versions]
-            if version not in installed_version_ids:
+            if not minecraft_launcher_lib.install.is_version_installed(version, MINECRAFT_DIR):
                 append_terminal("Version not installed. Starting download...")
                 progress_var.set(0)  # Reset progress bar
 
